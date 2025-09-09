@@ -1,52 +1,36 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environment/environment';
 import { Todo } from '../models/todo';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
 export class TodoService {
-  private todoId = 1;
-  private todoList: Todo[] = [
-    {
-      id: this.todoId++,
-      title: 'serve the app',
-      completed: true,
-    },
-    {
-      id: this.todoId++,
-      title: 'familiarise yourself with the codebase',
-      completed: false,
-    },
-    {
-      id: this.todoId++,
-      title: 'start talking to the api',
-      completed: false,
-    },
-  ];
+  private http = inject(HttpClient);
 
-  // TODO replace with a get request
-  todos: Promise<Todo[]> = Promise.resolve(this.todoList);
-
-  async addTodo(title: string): Promise<Todo> {
-    // TODO: replace with a POST request
-    const todo = {
-      id: this.todoId++,
-      title: title,
-      completed: false,
-    };
-    this.todoList.push(todo);
-
-    return todo;
+  public getTodos() : Observable<Todo[]> {
+    const result = this.http.get<Todo[]>(`${environment.api}`);
+    console.log("Result: ", result);
+    return result;
   }
 
-  async updateTodo(updatedTodo: Todo): Promise<Todo> {
-    // TODO: replace with a PUT request
-    const foundTodo = this.todoList.find((todo) => todo.id === updatedTodo.id);
-    if (!foundTodo) {
-      throw new Error('todo not found');
-    }
-    Object.assign(foundTodo, updatedTodo);
+  // public getTodosNotCompleted() : Observable<Todo[]> {
+  //   return this.http.get<Todo[]>(`${environment.api}/todo`).pipe(
+  //     map((todos) => todos.filter((todo) => !todo.completed))
+  //   );
+  // }
 
-    return foundTodo;
+  public addTodo(title: string) : Observable<Todo> {
+    const body = { title: title };
+    return this.http.post<Todo>(`${environment.api}`, body);
   }
+
+  public updateTodo(todo: Todo) : Observable<Todo> {
+    console.log(todo);
+    const body = { title: todo.title, completed: todo.completed };
+    return this.http.put<Todo>(`${environment.api}/${todo.id}`, body);
+  }
+  todos: Observable<Todo[]> = this.getTodos();
 }

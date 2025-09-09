@@ -1,6 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { TodoService } from '../services/todo.service';
 import { Todo } from '../models/todo';
+import { Router } from '@angular/router';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-todo-list',
@@ -8,16 +10,37 @@ import { Todo } from '../models/todo';
   styleUrls: ['./todo-list.component.css'],
 })
 export class TodoListComponent {
-  constructor(private readonly todoService: TodoService) {}
+  private readonly router = inject(Router);
 
   todos = this.todoService.todos;
+  constructor(private readonly todoService: TodoService) {}
+
+  ngOnInit(): void {
+    this.todos = this.todoService.getTodos();
+    this.todos.subscribe((ts) => {
+      ts.forEach((t) => {
+        console.log(t.title);
+      })
+    })
+  }
+  refreshTodos(): void {
+    this.todos = this.todoService.getTodos();
+  }
 
   updateTodo(todo: Todo) {
-    this.todoService.updateTodo(todo);
+    this.todoService.updateTodo(todo).subscribe();
   }
 
   async newTodo(title: string) {
-    await this.todoService.addTodo(title);
+    this.todoService.addTodo(title).subscribe({
+      next: (todo) => {
+        console.log("Created todo:", todo);
+        this.refreshTodos();
+      },
+      error: (err) => {
+        console.error("Error creating todo:", err);
+      }
+    });
     this.todos = this.todoService.todos;
   }
 }
