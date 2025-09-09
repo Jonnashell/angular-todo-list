@@ -13,6 +13,7 @@ export class TodoListComponent {
   private readonly router = inject(Router);
 
   todos = this.todoService.todos;
+  showCompleted = this.todoService.showCompleted;
   constructor(private readonly todoService: TodoService) {}
 
   ngOnInit(): void {
@@ -25,6 +26,11 @@ export class TodoListComponent {
   }
   refreshTodos(): void {
     this.todos = this.todoService.getTodos();
+  }
+
+  toggleShowCompleted() : void {
+    this.todoService.toggleShowCompleted();
+    this.refreshTodos();
   }
 
   updateTodo(todo: Todo) {
